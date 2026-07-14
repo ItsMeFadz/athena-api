@@ -56,7 +56,7 @@ class LunasKreditSyncController extends Controller
         try
         {
             $response = Http::withHeaders([
-                'X-ATHENA-KEY' => $apiKey,
+                'X-Sync-Key' => $apiKey,
                 'Accept' => 'application/json',
             ])->timeout(60)->post($targetUrl . '/api/sync/lunas-kredit/receive', [
                         'source' => [
@@ -156,7 +156,7 @@ class LunasKreditSyncController extends Controller
     private function hasValidSyncKey(Request $request): bool
     {
         $configuredKey = (string) (Cfgsys::current()?->api_key ?: env('SYNC_API_KEY', ''));
-        $requestKey = (string) ($request->header('X-ATHENA-KEY') ?: $request->bearerToken());
+        $requestKey = (string) ($request->header('X-Sync-Key') ?: $request->bearerToken());
 
         return $configuredKey !== '' && $requestKey !== '' && hash_equals($configuredKey, $requestKey);
     }

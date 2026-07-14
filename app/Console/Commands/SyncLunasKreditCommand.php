@@ -40,7 +40,7 @@ class SyncLunasKreditCommand extends Command
         try
         {
             $response = Http::withHeaders([
-                'X-ATHENA-KEY' => $apiKey,
+                'X-Sync-Key' => $apiKey,
                 'Accept' => 'application/json',
             ])->timeout(60)->post($targetUrl . '/api/sync/lunas-kredit/receive', [
                         'source' => compact('bulan', 'tahun', 'kodeljk', 'sandicabang'),
