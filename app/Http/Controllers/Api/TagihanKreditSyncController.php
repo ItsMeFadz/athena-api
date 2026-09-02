@@ -86,7 +86,8 @@ class TagihanKreditSyncController extends Controller
 
             'items.*.tglefektif' => [
                 'nullable',
-                'date',
+                'integer',
+                'between:1,31',
             ],
 
             'items.*.graceperiod' => [
