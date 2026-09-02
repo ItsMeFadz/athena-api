@@ -18,7 +18,8 @@ class TagihanKreditSyncController extends Controller
     public function receive(Request $request): JsonResponse
     {
         // Validasi API Key
-        if (!$this->hasValidSyncKey($request)) {
+        if (!$this->hasValidSyncKey($request))
+        {
             return response()->json([
                 'message' => 'API key tidak valid.',
             ], 401);
@@ -28,19 +29,6 @@ class TagihanKreditSyncController extends Controller
             'source' => ['nullable', 'array'],
 
             'items' => ['required', 'array'],
-
-            // Identitas
-            'items.*.kodeljk' => [
-                'required',
-                'string',
-                'size:6',
-            ],
-
-            'items.*.sandicabang' => [
-                'required',
-                'string',
-                'max:3',
-            ],
 
             'items.*.norekcrd' => [
                 'required',
@@ -94,11 +82,6 @@ class TagihanKreditSyncController extends Controller
                 'nullable',
                 'integer',
                 'between:1,31',
-            ],
-
-            'items.*.tglangsuran' => [
-                'required',
-                'date',
             ],
 
             'items.*.tglefektif' => [
@@ -182,7 +165,8 @@ class TagihanKreditSyncController extends Controller
             ],
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
                 'message' => 'Validasi data gagal.',
                 'errors' => $validator->errors(),
@@ -196,11 +180,8 @@ class TagihanKreditSyncController extends Controller
         $saved = 0;
         $updated = 0;
 
-        foreach ($items as $item) {
-            // Normalisasi tanggal
-            $item['tglangsuran'] = Carbon::parse(
-                $item['tglangsuran']
-            )->toDateString();
+        foreach ($items as $item)
+        {
 
             $item['tglefektif'] = !empty($item['tglefektif'])
                 ? Carbon::parse($item['tglefektif'])->toDateString()
@@ -219,25 +200,22 @@ class TagihanKreditSyncController extends Controller
              * banyak jadwal angsuran.
              */
             $existing = TagihanKreditSync::query()
-                ->where('kodeljk', $item['kodeljk'])
-                ->where('sandicabang', $item['sandicabang'])
                 ->where('norekcrd', $item['norekcrd'])
-                ->where('tglangsuran', $item['tglangsuran'])
                 ->first();
 
             TagihanKreditSync::query()->updateOrCreate(
                 [
-                    'kodeljk' => $item['kodeljk'],
-                    'sandicabang' => $item['sandicabang'],
                     'norekcrd' => $item['norekcrd'],
-                    'tglangsuran' => $item['tglangsuran'],
                 ],
                 $item
             );
 
-            if ($existing) {
+            if ($existing)
+            {
                 $updated++;
-            } else {
+            }
+            else
+            {
                 $saved++;
             }
         }
