@@ -7,7 +7,6 @@ use App\Models\Cfgsys;
 use App\Models\TagihanKreditSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class TagihanKreditSyncController extends Controller
@@ -183,10 +182,6 @@ class TagihanKreditSyncController extends Controller
 
         foreach ($items as $item)
         {
-
-            $item['tglefektif'] = !empty($item['tglefektif'])
-                ? Carbon::parse($item['tglefektif'])->toDateString()
-                : null;
 
             $item['synced_at'] = $syncedAt;
 
