@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
 
             // Identitas sumber
-            $table->string('kodeljk', 6);
-            $table->string('sandicabang', 3);
             $table->string('norekcrd', 50);
 
             // Debitur
@@ -32,7 +30,6 @@ return new class extends Migration
 
             // Jadwal
             $table->unsignedTinyInteger('tgltempo')->nullable();
-            $table->date('tglangsuran')->nullable();
             $table->date('tglefektif')->nullable();
             $table->integer('graceperiod')->nullable();
 
@@ -65,13 +62,11 @@ return new class extends Migration
 
             // Satu rekening bisa memiliki banyak jadwal angsuran
             $table->unique(
-                ['kodeljk', 'sandicabang', 'norekcrd', 'tglangsuran'],
+                ['norekcrd'],
                 'tagihan_kredit_sync_unique'
             );
 
-            $table->index(['kodeljk', 'sandicabang']);
             $table->index('norekcrd');
-            $table->index('tglangsuran');
         });
     }
 
