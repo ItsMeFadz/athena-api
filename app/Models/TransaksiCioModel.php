@@ -14,6 +14,7 @@ class TransaksiCioModel extends Model
         'tgltrx',
         'userid',
         'username',
+        'kodeao',
         'trxid',
         'nopkg',
         'kodetrn',

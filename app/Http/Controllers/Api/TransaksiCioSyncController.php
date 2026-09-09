@@ -29,6 +29,7 @@ class TransaksiCioSyncController extends Controller
 
             'items.*.userid' => ['nullable', 'integer'],
             'items.*.username' => ['nullable', 'string', 'max:20'],
+            'items.*.kodeao' => ['nullable', 'string', 'max:10'],
 
             'items.*.trxid' => ['required', 'integer'],
 
