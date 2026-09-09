@@ -65,7 +65,7 @@ class TransaksiCioSyncController extends Controller
             'items.*.update_user' => ['nullable', 'string', 'max:20'],
 
             'items.*.delete_date' => ['nullable', 'date'],
-            'items.*.delete_user' => ['nullable', 'date'],
+            'items.*.delete_user' => ['nullable', 'string', 'max:30'],
         ]);
 
         if ($validator->fails()) {
