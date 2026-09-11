@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Cfgsys;
 use App\Models\LunasKreditSync;
-use App\Services\LunasKreditSyncService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,9 +14,6 @@ use Illuminate\Support\Facades\Validator;
 
 class LunasKreditSyncController extends Controller
 {
-    public function __construct(private readonly LunasKreditSyncService $service)
-    {
-    }
 
     public function receive(Request $request): JsonResponse
     {

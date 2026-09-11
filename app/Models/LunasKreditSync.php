@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LunasKreditSync extends Model
 {
+    protected $table = 'sync_lunas_kredit';
+
     protected $fillable = [
         'nama_bank',
         'alamat',

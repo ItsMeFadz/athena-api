@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagihanKreditSync extends Model
 {
-    protected $table = 'tagihan_kredit_syncs';
+    protected $table = 'sync_tagihan_kredit';
 
     protected $fillable = [
         'kodeljk',
@@ -25,6 +25,7 @@ class TagihanKreditSync extends Model
         'tgltempo',
         'tglangsuran',
         'tglefektif',
+        'tgljthtempo',
         'graceperiod',
 
         'statusrek',
@@ -53,6 +54,7 @@ class TagihanKreditSync extends Model
         'tgltempo' => 'integer',
         'tglangsuran' => 'date',
         'tglefektif' => 'date',
+        'tgljthtempo' => 'date',
         'graceperiod' => 'integer',
 
         'tagpokok' => 'decimal:2',
