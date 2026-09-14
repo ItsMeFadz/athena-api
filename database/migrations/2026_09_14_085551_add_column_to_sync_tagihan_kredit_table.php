@@ -16,6 +16,7 @@ return new class extends Migration
             $table->decimal('tungpokok', 20, 2)->nullable()->after('tagbunga');
             $table->decimal('tungbunga', 20, 2)->nullable()->after('tungpokok');
             $table->string('kolektibilitas', 10)->after('tungbunga');
+            $table->string('kodekondisi', 2)->after('kolektibilitas');
         });
     }
 

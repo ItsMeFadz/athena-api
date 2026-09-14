@@ -36,6 +36,7 @@ class TagihanKreditSync extends Model
         'tungpokok',
         'tungbunga',
         'kolektibilitas',
+        'kodekondisi',
         'totalangsuran',
         'haritunggakkan',
 

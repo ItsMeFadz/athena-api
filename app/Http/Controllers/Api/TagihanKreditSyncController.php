@@ -136,6 +136,11 @@ class TagihanKreditSyncController extends Controller
                 'max:10',
             ],
 
+            'items.*.kodekondisi' => [
+                'string',
+                'max:2',
+            ],
+
             'items.*.totalangsuran' => [
                 'nullable',
                 'numeric',
