@@ -121,6 +121,21 @@ class TagihanKreditSyncController extends Controller
                 'numeric',
             ],
 
+            'items.*.tungpokok' => [
+                'nullable',
+                'numeric',
+            ],
+
+            'items.*.tungbunga' => [
+                'nullable',
+                'numeric',
+            ],
+
+            'items.*.kolektibilitas' => [
+                'string',
+                'max:10',
+            ],
+
             'items.*.totalangsuran' => [
                 'nullable',
                 'numeric',
