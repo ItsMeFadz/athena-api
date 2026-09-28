@@ -12,24 +12,20 @@ class TagihanKreditSync extends Model
         'kodeljk',
         'sandicabang',
         'norekcrd',
-
         'namalengkap',
         'alamatktp',
         'alamatdomisili',
         'notelp',
         'nohp',
-
         'noakad',
         'bakidebet',
-
         'tgltempo',
         'tglangsuran',
         'tglefektif',
         'tgljthtempo',
         'graceperiod',
-
         'statusrek',
-
+        'plafon',
         'tagpokok',
         'tagbunga',
         'tagdenda',
@@ -39,16 +35,12 @@ class TagihanKreditSync extends Model
         'kodekondisi',
         'totalangsuran',
         'haritunggakkan',
-
         'norekpembayaran',
         'saldotab',
         'saldotabactual',
-
         'kodeao',
         'ao',
-
         'ketinstansi',
-
         'synced_at',
     ];
 
