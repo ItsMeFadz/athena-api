@@ -8,6 +8,7 @@ use App\Models\RpsSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class RpsSyncController extends Controller
@@ -57,33 +58,35 @@ class RpsSyncController extends Controller
         $saved = 0;
         $updated = 0;
 
-        foreach ($items as $item) {
-            $item['synced_at'] = $syncedAt;
-            $item['tglangsuran'] = Carbon::parse($item['tglangsuran'])->toDateString();
-            $item['tglbyrdenda'] = isset($item['tglbyrdenda'])
-                ? Carbon::parse($item['tglbyrdenda'])->toDateString()
-                : null;
-            $item['tglbyrbunga'] = isset($item['tglbyrbunga'])
-                ? Carbon::parse($item['tglbyrbunga'])->toDateString()
-                : null;
-            $item['tglbyr'] = isset($item['tglbyr'])
-                ? Carbon::parse($item['tglbyr'])->toDateTimeString()
-                : null;
+        DB::transaction(function () use ($items, $syncedAt, &$saved, &$updated) {
+            foreach ($items as $item) {
+                $item['synced_at'] = $syncedAt;
+                $item['tglangsuran'] = Carbon::parse($item['tglangsuran'])->toDateString();
+                $item['tglbyrdenda'] = isset($item['tglbyrdenda'])
+                    ? Carbon::parse($item['tglbyrdenda'])->toDateString()
+                    : null;
+                $item['tglbyrbunga'] = isset($item['tglbyrbunga'])
+                    ? Carbon::parse($item['tglbyrbunga'])->toDateString()
+                    : null;
+                $item['tglbyr'] = isset($item['tglbyr'])
+                    ? Carbon::parse($item['tglbyr'])->toDateTimeString()
+                    : null;
 
-            $rps = RpsSync::query()->updateOrCreate(
-                [
-                    'norekcrd' => $item['norekcrd'],
-                    'tglangsuran' => $item['tglangsuran'],
-                ],
-                $item
-            );
+                $rps = RpsSync::query()->updateOrCreate(
+                    [
+                        'norekcrd' => $item['norekcrd'],
+                        'tglangsuran' => $item['tglangsuran'],
+                    ],
+                    $item
+                );
 
-            if ($rps->wasRecentlyCreated) {
-                $saved++;
-            } else {
-                $updated++;
+                if ($rps->wasRecentlyCreated) {
+                    $saved++;
+                } else {
+                    $updated++;
+                }
             }
-        }
+        });
 
         return response()->json([
             'message' => 'Data RPS berhasil diterima.',

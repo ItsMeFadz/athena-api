@@ -9,6 +9,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
@@ -57,29 +58,42 @@ class LunasKreditSyncController extends Controller
             ], 422);
         }
 
+        $items = $validator->validated()['items'];
         $syncedAt = now();
         $saved = 0;
+        $updated = 0;
 
-        foreach ($validator->validated()['items'] as $item)
-        {
-            $item['tglkondisi'] = Carbon::parse($item['tglkondisi'])->toDateString();
-            $item['tgleff'] = isset($item['tgleff']) ? Carbon::parse($item['tgleff'])->toDateString() : null;
-            $item['synced_at'] = $syncedAt;
+        DB::transaction(function () use ($items, $syncedAt, &$saved, &$updated) {
+            foreach ($items as $item)
+            {
+                $item['tglkondisi'] = Carbon::parse($item['tglkondisi'])->toDateString();
+                $item['tgleff'] = isset($item['tgleff']) ? Carbon::parse($item['tgleff'])->toDateString() : null;
+                $item['synced_at'] = $syncedAt;
 
-            LunasKreditSync::query()->updateOrCreate([
-                'kodeljk' => $item['kodeljk'],
-                'sandicabang' => $item['sandicabang'],
-                'norekcrd' => $item['norekcrd'],
-                'noakad' => $item['noakad'] ?? null,
-                'tglkondisi' => $item['tglkondisi'],
-            ], $item);
+                $record = LunasKreditSync::query()->updateOrCreate([
+                    'kodeljk' => $item['kodeljk'],
+                    'sandicabang' => $item['sandicabang'],
+                    'norekcrd' => $item['norekcrd'],
+                    'noakad' => $item['noakad'] ?? null,
+                    'tglkondisi' => $item['tglkondisi'],
+                ], $item);
 
-            $saved++;
-        }
+                if ($record->wasRecentlyCreated)
+                {
+                    $saved++;
+                }
+                else
+                {
+                    $updated++;
+                }
+            }
+        });
 
         return response()->json([
             'message' => 'Data lunas kredit diterima.',
-            'received' => $saved,
+            'received' => count($items),
+            'saved' => $saved,
+            'updated' => $updated,
         ]);
     }
 

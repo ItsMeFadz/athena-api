@@ -8,6 +8,7 @@ use App\Models\TransaksiCio;
 use App\Models\TransaksiCioModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class TransaksiCioSyncController extends Controller
@@ -76,19 +77,31 @@ class TransaksiCioSyncController extends Controller
         }
 
         $items = $validator->validated()['items'];
+        $saved = 0;
+        $updated = 0;
 
-        foreach ($items as $item) {
-            TransaksiCioModel::query()->updateOrCreate(
-                [
-                    'trxid' => $item['trxid'],
-                ],
-                $item
-            );
-        }
+        DB::transaction(function () use ($items, &$saved, &$updated) {
+            foreach ($items as $item) {
+                $record = TransaksiCioModel::query()->updateOrCreate(
+                    [
+                        'trxid' => $item['trxid'],
+                    ],
+                    $item
+                );
+
+                if ($record->wasRecentlyCreated) {
+                    $saved++;
+                } else {
+                    $updated++;
+                }
+            }
+        });
 
         return response()->json([
             'message' => 'Transaksi berhasil diterima.',
             'received' => count($items),
+            'saved' => $saved,
+            'updated' => $updated,
         ]);
     }
 

@@ -7,6 +7,7 @@ use App\Models\Cfgsys;
 use App\Models\TagihanKreditSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class TagihanKreditSyncController extends Controller
@@ -209,41 +210,32 @@ class TagihanKreditSyncController extends Controller
         $saved = 0;
         $updated = 0;
 
-        foreach ($items as $item)
-        {
-
-            $item['synced_at'] = $syncedAt;
-
-            /*
-             * Gunakan kombinasi:
-             * kodeljk
-             * sandicabang
-             * norekcrd
-             * tglangsuran
-             *
-             * karena satu rekening kredit mempunyai
-             * banyak jadwal angsuran.
-             */
-            $existing = TagihanKreditSync::query()
-                ->where('norekcrd', $item['norekcrd'])
-                ->first();
-
-            TagihanKreditSync::query()->updateOrCreate(
-                [
-                    'norekcrd' => $item['norekcrd'],
-                ],
-                $item
-            );
-
-            if ($existing)
+        DB::transaction(function () use ($items, $syncedAt, &$saved, &$updated) {
+            foreach ($items as $item)
             {
-                $updated++;
+                $item['synced_at'] = $syncedAt;
+
+                $existing = TagihanKreditSync::query()
+                    ->where('norekcrd', $item['norekcrd'])
+                    ->exists();
+
+                TagihanKreditSync::query()->updateOrCreate(
+                    [
+                        'norekcrd' => $item['norekcrd'],
+                    ],
+                    $item
+                );
+
+                if ($existing)
+                {
+                    $updated++;
+                }
+                else
+                {
+                    $saved++;
+                }
             }
-            else
-            {
-                $saved++;
-            }
-        }
+        });
 
         return response()->json([
             'message' => 'Data tagihan kredit berhasil diterima.',
