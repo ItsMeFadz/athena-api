@@ -26,6 +26,7 @@ class TagihanKreditSync extends Model
         'graceperiod',
         'statusrek',
         'plafon',
+        'jangkawaktu',
         'tagpokok',
         'tagbunga',
         'tagdenda',
