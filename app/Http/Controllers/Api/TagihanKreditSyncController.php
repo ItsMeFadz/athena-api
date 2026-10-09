@@ -77,13 +77,6 @@ class TagihanKreditSyncController extends Controller
                 'numeric',
             ],
 
-            // Jadwal
-            'items.*.tgltempo' => [
-                'nullable',
-                'integer',
-                'between:1,31',
-            ],
-
             'items.*.tglefektif' => [
                 'nullable',
                 'date',
@@ -118,21 +111,6 @@ class TagihanKreditSyncController extends Controller
                 'integer',
             ],
 
-            'items.*.tagpokok' => [
-                'nullable',
-                'numeric',
-            ],
-
-            'items.*.tagbunga' => [
-                'nullable',
-                'numeric',
-            ],
-
-            'items.*.tagdenda' => [
-                'nullable',
-                'numeric',
-            ],
-
             'items.*.tungpokok' => [
                 'nullable',
                 'numeric',
@@ -151,11 +129,6 @@ class TagihanKreditSyncController extends Controller
             'items.*.kodekondisi' => [
                 'string',
                 'max:2',
-            ],
-
-            'items.*.totalangsuran' => [
-                'nullable',
-                'numeric',
             ],
 
             'items.*.haritunggakkan' => [
