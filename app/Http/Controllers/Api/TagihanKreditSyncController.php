@@ -189,36 +189,65 @@ class TagihanKreditSyncController extends Controller
         $saved = 0;
         $updated = 0;
 
-        DB::transaction(function () use ($items, $syncedAt, &$saved, &$updated) {
-            foreach ($items as $item)
+        if (!empty($items))
+        {
+            foreach ($items as &$item)
             {
                 $item['synced_at'] = $syncedAt;
-
-                $existing = TagihanKreditSync::query()
-                    ->where('norekcrd', $item['norekcrd'])
-                    ->exists();
-
-                TagihanKreditSync::query()->updateOrCreate(
-                    [
-                        'norekcrd' => $item['norekcrd'],
-                    ],
-                    $item
-                );
-
-                if ($existing)
-                {
-                    $updated++;
-                }
-                else
-                {
-                    $saved++;
-                }
             }
-        });
+            unset($item);
+
+            $received = count($items);
+
+            DB::transaction(function () use ($items, &$saved, &$updated)
+            {
+                $accountNumbers = array_column($items, 'norekcrd');
+
+                // Cukup satu query untuk memeriksa rekening yang sudah ada.
+                $existingAccounts = TagihanKreditSync::query()
+                    ->whereIn('norekcrd', $accountNumbers)
+                    ->pluck('norekcrd')
+                    ->map(fn($value) => (string) $value)
+                    ->all();
+
+                $existingSet = array_fill_keys($existingAccounts, true);
+
+                foreach ($accountNumbers as $accountNumber)
+                {
+                    if (isset($existingSet[(string) $accountNumber]))
+                    {
+                        $updated++;
+                    }
+                    else
+                    {
+                        $saved++;
+                        $existingSet[(string) $accountNumber] = true;
+                    }
+                }
+
+                // Satu operasi database untuk seluruh batch.
+                $columns = array_keys($items[0]);
+
+                $updateColumns = array_values(array_diff(
+                    $columns,
+                    ['norekcrd']
+                ));
+
+                TagihanKreditSync::upsert(
+                    $items,
+                    ['norekcrd'],
+                    $updateColumns
+                );
+            });
+        }
+        else
+        {
+            $received = 0;
+        }
 
         return response()->json([
             'message' => 'Data tagihan kredit berhasil diterima.',
-            'received' => count($items),
+            'received' => $received,
             'saved' => $saved,
             'updated' => $updated,
         ]);

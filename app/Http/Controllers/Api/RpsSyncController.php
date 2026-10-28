@@ -15,7 +15,8 @@ class RpsSyncController extends Controller
 {
     public function receive(Request $request): JsonResponse
     {
-        if (!$this->hasValidSyncKey($request)) {
+        if (!$this->hasValidSyncKey($request))
+        {
             return response()->json([
                 'message' => 'API key tidak valid.',
             ], 401);
@@ -46,7 +47,8 @@ class RpsSyncController extends Controller
             'items.*.tglbyrbunga' => ['nullable', 'date'],
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
                 'message' => 'Validasi data gagal.',
                 'errors' => $validator->errors(),
@@ -58,35 +60,100 @@ class RpsSyncController extends Controller
         $saved = 0;
         $updated = 0;
 
-        DB::transaction(function () use ($items, $syncedAt, &$saved, &$updated) {
-            foreach ($items as $item) {
+        if (!empty($items))
+        {
+            foreach ($items as &$item)
+            {
                 $item['synced_at'] = $syncedAt;
-                $item['tglangsuran'] = Carbon::parse($item['tglangsuran'])->toDateString();
-                $item['tglbyrdenda'] = isset($item['tglbyrdenda'])
+                $item['tglangsuran'] = Carbon::parse(
+                    $item['tglangsuran']
+                )->toDateString();
+
+                $item['tglbyrdenda'] = !empty($item['tglbyrdenda'])
                     ? Carbon::parse($item['tglbyrdenda'])->toDateString()
                     : null;
-                $item['tglbyrbunga'] = isset($item['tglbyrbunga'])
+
+                $item['tglbyrbunga'] = !empty($item['tglbyrbunga'])
                     ? Carbon::parse($item['tglbyrbunga'])->toDateString()
                     : null;
-                $item['tglbyr'] = isset($item['tglbyr'])
+
+                $item['tglbyr'] = !empty($item['tglbyr'])
                     ? Carbon::parse($item['tglbyr'])->toDateTimeString()
                     : null;
-
-                $rps = RpsSync::query()->updateOrCreate(
-                    [
-                        'norekcrd' => $item['norekcrd'],
-                        'tglangsuran' => $item['tglangsuran'],
-                    ],
-                    $item
-                );
-
-                if ($rps->wasRecentlyCreated) {
-                    $saved++;
-                } else {
-                    $updated++;
-                }
             }
-        });
+            unset($item);
+
+            DB::transaction(function () use ($items, &$saved, &$updated)
+            {
+                // Periksa pasangan rekening dan tanggal yang sudah ada.
+                $existingKeys = [];
+
+                foreach (array_chunk($items, 100) as $chunk)
+                {
+                    $query = RpsSync::query();
+
+                    $query->where(function ($outer) use ($chunk)
+                    {
+                        foreach ($chunk as $item)
+                        {
+                            $outer->orWhere(function ($where) use ($item)
+                            {
+                                $where->where(
+                                    'norekcrd',
+                                    $item['norekcrd']
+                                )->where(
+                                        'tglangsuran',
+                                        $item['tglangsuran']
+                                    );
+                            });
+                        }
+                    });
+
+                    foreach ($query->get(['norekcrd', 'tglangsuran']) as $row)
+                    {
+                        $key = (string) $row->norekcrd
+                            . '|'
+                            . Carbon::parse($row->tglangsuran)->toDateString();
+
+                        $existingKeys[$key] = true;
+                    }
+                }
+
+                // Hitung status sebelum upsert.
+                foreach ($items as $item)
+                {
+                    $key = (string) $item['norekcrd']
+                        . '|'
+                        . $item['tglangsuran'];
+
+                    if (isset($existingKeys[$key]))
+                    {
+                        $updated++;
+                    }
+                    else
+                    {
+                        $saved++;
+                        $existingKeys[$key] = true;
+                    }
+                }
+
+                $columns = array_keys($items[0]);
+                $updateColumns = array_values(array_diff(
+                    $columns,
+                    ['norekcrd', 'tglangsuran']
+                ));
+
+                // Pecah agar ukuran query tetap terkendali.
+                foreach (array_chunk($items, 100) as $chunk)
+                {
+                    RpsSync::upsert(
+                        $chunk,
+                        ['norekcrd', 'tglangsuran'],
+                        $updateColumns
+                    );
+                }
+            });
+        }
 
         return response()->json([
             'message' => 'Data RPS berhasil diterima.',
